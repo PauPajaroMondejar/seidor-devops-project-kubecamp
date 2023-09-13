@@ -59,7 +59,7 @@ services:
   php-progress:
     build:
       context: ./php-progress
-      dockerfile: ./dev.Dockerfile
+      dockerfile: ./Dockerfile
     restart: unless-stopped
     volumes:
       - ./php-progress:/var/www/html
@@ -86,7 +86,7 @@ services:
   python-discuss:
     build:
       context: ./python-discuss
-      dockerfile: ./dev.Dockerfile
+      dockerfile: ./Dockerfile
     restart: unless-stopped
     volumes:
       - ./python-discuss:/app
