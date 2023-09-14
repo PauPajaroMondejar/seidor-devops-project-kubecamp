@@ -25,6 +25,7 @@ pipeline {
                 }
             }
         }
+        //Build
         stage('Build Docker Image') {
             steps {
                 dir('services/python-discuss'){
@@ -37,6 +38,7 @@ pipeline {
                 
             }
         }
+        // Push
         stage('Push image') {
             steps{
                 script{
