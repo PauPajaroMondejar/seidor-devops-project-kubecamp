@@ -14,6 +14,7 @@ pipeline {
                 checkout scm
             }
         }
+        // Sonarqube
         stage('SonarQube Analysis') {
             steps {
                 script {
