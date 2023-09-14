@@ -37,17 +37,19 @@ pipeline {
             }
         }
         stage('Run Tests') {
-            agent{
-                docker {
-                    image 'composer:latest'
-                    reuseNode true
+            steps {
+                dir('services/php-progress'){
+                    script {
+                        def dockerfileTest = "Dockerfile.test"
+                        // Construye la imagen para las pruebas
+                        testApp = docker.build("${params.DOCKER_IMAGE}:test", "-f ${dockerfileTest} .")
+                        
+                        // Ejecuta la imagen para las pruebas
+                        testApp.run()
+                    }
                 }
             }
-            steps {
-                sh 'composer run test'
-            }
         }
-
         stage('Push image') {
             steps{
                 script{
