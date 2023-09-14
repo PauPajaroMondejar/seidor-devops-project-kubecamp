@@ -19,18 +19,18 @@ pipeline {
                 script {
                     def scannerHome = tool 'sonarqube_5.0'
                     withSonarQubeEnv(installationName: 'aroldev sonarqube') {
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=pau-kubecamp-java -Dsonar.sources=./services/java-catalog"
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=pau-kubecamp-java -Dsonar.sources=./services/java-catalog -Dsonar.inclusions=./services/java-catalog/src/main/*.java"
                     }
                 }
             }
         }
         stage('Build Docker Image') {
             steps {
-                dir('services/go-auth'){
+                dir('services/java-catalog'){
                     script {
                     def dockerfile = "Dockerfile"
                     // Construye la imagen de Docker
-                    app = docker.build("${params.DOCKER_IMAGE}:${params.TAG}", "-f ./.docker/${dockerfile}  .")
+                    app = docker.build("${params.DOCKER_IMAGE}:${params.TAG}", "-f .docker/${dockerfile}  .")
                     }
                 }
                 
@@ -40,7 +40,7 @@ pipeline {
             steps{
                 script{
                     withCredentials([usernamePassword(credentialsId: 'pau.dockerhub', passwordVariable: 'DOCKER_REGISTRY_PWD', usernameVariable: 'DOCKER_REGISTRY_USER')]) {
-                        // assumes Jib is configured to use the environment variables
+                        // assumes Job is configured to use the environment variables
                         sh "docker login -u ${DOCKER_REGISTRY_USER} -p ${DOCKER_REGISTRY_PWD}"
                         app.push()
                     }
