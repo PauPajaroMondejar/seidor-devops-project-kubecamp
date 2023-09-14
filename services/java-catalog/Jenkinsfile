@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    parameters{
+        string(name: 'DOCKER_IMAGE', defaultValue: 'paupajaromondejar/go-auth', description: 'Docker image name')
+        string(name: 'TAG', defaultValue: 'latest', description: 'version name')
+        string(name: 'CREDENTIALS', defaultValue: 'pau.dockerhub', description: 'DockerHub credentials')
+    }
+    
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'sonarqube_5.0'
+                    withSonarQubeEnv(installationName: 'aroldev sonarqube') {
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=pau-kubecamp-go -Dsonar.sources=./services/go-auth -Dsonar.exclusions=**/*_test.go -Dsonar.tests=./services/go-auth -Dsonar.test.inclusions=**/*_test.go"
+                    }
+                }
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                dir('services/go-auth'){
+                    script {
+                    def dockerfile = "Dockerfile"
+                    // Construye la imagen de Docker
+                    app = docker.build("${params.DOCKER_IMAGE}:${params.TAG}", "-f ${dockerfile}  .")
+                    }
+                }
+                
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                dir('services/go-auth'){
+                    script {
+                        def dockerfileTest = "Dockerfile.test"
+                        // Construye la imagen para las pruebas
+                        testApp = docker.build("${params.DOCKER_IMAGE}:test", "-f ${dockerfileTest} .")
+                        
+                        // Ejecuta la imagen para las pruebas
+                        testApp.run()
+                    }
+                }
+            }
+        }
+
+        stage('Push image') {
+            steps{
+                script{
+                    withCredentials([usernamePassword(credentialsId: 'pau.dockerhub', passwordVariable: 'DOCKER_REGISTRY_PWD', usernameVariable: 'DOCKER_REGISTRY_USER')]) {
+                        // assumes Jib is configured to use the environment variables
+                        sh "docker login -u ${DOCKER_REGISTRY_USER} -p ${DOCKER_REGISTRY_PWD}"
+                        app.push()
+                    }
+                }
+            }
+        }
+        
+    }
+}
