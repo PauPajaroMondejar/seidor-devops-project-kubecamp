@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters{
-        string(name: 'DOCKER_IMAGE', defaultValue: 'paupajaromondejar/go-auth', description: 'Docker image name')
+        string(name: 'DOCKER_IMAGE', defaultValue: 'paupajaromondejar/php-progress', description: 'Docker image name')
         string(name: 'TAG', defaultValue: 'latest', description: 'version name')
         string(name: 'CREDENTIALS', defaultValue: 'pau.dockerhub', description: 'DockerHub credentials')
     }
@@ -19,14 +19,14 @@ pipeline {
                 script {
                     def scannerHome = tool 'sonarqube_5.0'
                     withSonarQubeEnv(installationName: 'aroldev sonarqube') {
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=pau-kubecamp-go -Dsonar.sources=./services/go-auth -Dsonar.exclusions=**/*_test.go -Dsonar.tests=./services/go-auth -Dsonar.test.inclusions=**/*_test.go"
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=pau-kubecamp-php -Dsonar.sources=./services/php-progress -Dsonar.exclusions=**/*Test.php -Dsonar.tests=./services/php-progress -Dsonar.test.inclusions=**/*Test.php"
                     }
                 }
             }
         }
         stage('Build Docker Image') {
             steps {
-                dir('services/go-auth'){
+                dir('services/php-progress'){
                     script {
                     def dockerfile = "Dockerfile"
                     // Construye la imagen de Docker
@@ -37,17 +37,14 @@ pipeline {
             }
         }
         stage('Run Tests') {
-            steps {
-                dir('services/go-auth'){
-                    script {
-                        def dockerfileTest = "Dockerfile.test"
-                        // Construye la imagen para las pruebas
-                        testApp = docker.build("${params.DOCKER_IMAGE}:test", "-f ${dockerfileTest} .")
-                        
-                        // Ejecuta la imagen para las pruebas
-                        testApp.run()
-                    }
+            agent{
+                docker {
+                    image 'composer:latest'
+                    reuseNode true
                 }
+            }
+            steps {
+                sh 'composer run test'
             }
         }
 
