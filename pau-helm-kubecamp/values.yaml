@@ -1,0 +1,99 @@
+# values.yaml
+go-auth:
+  image:
+    repository: paupajaromondejar/go-auth
+    tag: latest
+  ports:
+    - name: http
+      containerPort: 8080
+  environment:
+    MONGO_URI: "mongodb://db-auth-mongo:27017/users?connect=direct&authSource=admin"
+    PORT: 8080
+    SECRET_KEY: pJmJmc4qnEX8/cG/h47zj++9CsFCJY2sda44oFu/USyB6ONEyUO8rg2VdiyvDPYw
+
+db-auth-mongo:
+  image:
+    repository: mongo:latest
+    tag: latest
+  ports:
+    - name: db
+      containerPort: 27017
+
+java-catalog:
+  image:
+    repository: paupajaromondejar/java-catalog
+    tag: latest
+  ports:
+    - name: http
+      containerPort: 8081
+  environment:
+    APP_ENV: "dev"
+    APP_DEBUG: "1"
+    SERVER_ADDRESS: "0.0.0.0"
+    SERVER_PORT: 8081
+    SPRING_DATASOURCE_URL: "jdbc:postgresql://db-catalog-postgres:5432/kubecamp_catalog"
+    SPRING_DATASOURCE_USERNAME: "kubecamp"
+    SPRING_DATASOURCE_PASSWORD: "kubecamp"
+    SPRING_JPA_HIBERNATE_JDBC_DIALECT: "org.hibernate.dialect.PostgreSQLDialect"
+    SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+
+db-catalog-postgres:
+  image:
+    repository: postgres:14.4
+    tag: latest
+  ports:
+    - name: db
+      containerPort: 5432
+  environment:
+    POSTGRES_USER: "kubecamp"
+    POSTGRES_PASSWORD: "kubecamp"
+    POSTGRES_DB: "kubecamp_catalog"
+
+php-progress:
+  image:
+    repository: paupajaromondejar/php-progress
+    tag: latest
+  ports:
+    - name: http
+      containerPort: 9000
+  environment:
+    MONGODB_HOST: "db-progress-mongo"
+    MONGODB_PORT: "27017"
+
+php-nginx:
+  image: nginx:latest
+  ports:
+    - name: http
+      containerPort: 80
+
+db-progress-mongo:
+  image: mongo:latest
+  ports:
+    - name: db
+      containerPort: 27017
+
+python-discuss:
+  image:
+    repository: paupajaromondejar/python-discuss
+    tag: latest
+  ports:
+    - name: http
+      containerPort: 8083
+  environment:
+    MONGODB_HOST: "db-discuss-mongo"
+    MONGODB_PORT: "27017"
+    MONGODB_DB: "kubecampDiscussion"
+    PORT: 8083
+    AUTH_SERVICE_URL: "http://go-auth:8080"
+
+db-discuss-mongo:
+  image: mongo:latest
+  ports:
+    - name: db
+      containerPort: 27017
+
+nginx:
+  image: nginx:latest
+  ports:
+    - name: http
+      containerPort: 80

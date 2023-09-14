@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kubecamp-mongo-python  # Utiliza el nombre del release
+spec:
+  serviceName: mongo-python-service  
+  replicas: 1  # Utiliza el valor definido en values.yaml
+  selector:
+    matchLabels:
+      role: mongo
+  template:
+    metadata:
+      labels:
+        role: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:latest  # Utiliza el valor definido en values.yaml
+        args:
+          - "--replSet"
+          - "rs0"
+        ports:
+        - containerPort: 8083
+        volumeMounts:
+        - name: mongo-persistent-storage
+          mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-persistent-storage
+    spec:
+      storageClassName: fast 
+      resources:
+        requests:
+          storage: 1Gi  
+      accessModes:
+      - ReadWriteOnce

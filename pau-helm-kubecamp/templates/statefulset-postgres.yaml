@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kubecamp-postgres-java
+spec:
+  serviceName: postgres-java-service
+  replicas: 1  # Define el número de réplicas que necesites
+  selector:
+    matchLabels:
+      role: postgres
+  template:
+    metadata:
+      labels:
+        role: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:14.4  # Usa la imagen de PostgreSQL que necesites
+        env:
+        - name: POSTGRES_USER
+          value: kubecamp
+        - name: POSTGRES_PASSWORD
+          value: kubecamp
+        - name: POSTGRES_DB
+          value: kubecamp_catalog
+        ports:
+        - name: postgres
+          containerPort: 5432
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: progress-persistent-storage
+    spec:
+      storageClassName: fast  # Utiliza el valor definido en values.yaml para la clase de almacenamiento
+      resources:
+        requests:
+          storage: 1Gi  # Utiliza el valor definido en values.yaml para el tamaño del almacenamiento
+      accessModes:
+      - ReadWriteOnce
